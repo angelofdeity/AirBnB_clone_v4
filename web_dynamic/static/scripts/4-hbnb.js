@@ -1,37 +1,67 @@
-$(() => {
-  const amenityDict = {};
-  $("input[type='checkbox']").on('click', event => {
-    const id = event.target.dataset.id;
-    if (event.target.checked) {
-      amenityDict[id] = event.target.dataset.name;
+const searchPlacesUrl = 'http://0.0.0.0:5001/api/v1/places_search/';
+const amenityDict = {};
+document.addEventListener('DOMContentLoaded', () => {
+  const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+  const amenities = document.querySelector('.amenities h4');
+  function handleCheckbox (checkbox) {
+    const id = checkbox.dataset.id;
+    if (checkbox.checked) {
+      amenityDict[id] = checkbox.dataset.name;
     } else {
       delete amenityDict[id];
     }
-    $('.amenities h4').text(Object.values(amenityDict));
+    updateAmenities();
+  }
+  checkboxes.forEach(checkbox => {
+    handleCheckbox(checkbox);
+    checkbox.addEventListener('click', () => handleCheckbox(checkbox));
+  });
+  function updateAmenities () {
+    amenities.textContent = Object.values(amenityDict).join(', ');
+  }
+  updateAmenities();
+});
+$(() => {
+  const statusApi = 'http://0.0.0.0:5001/api/v1/status/';
+  fetch(statusApi).then((response) => {
+    if (response.ok) {
+      $('div#api_status').addClass('available');
+    }
+  });
+  fetchPlaces({});
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const searchButton = document.querySelector('button');
+  console.log(searchButton);
+  const placesSection = document.querySelector('section.places');
+  searchButton.addEventListener('click', () => {
+    const amenities = { amenities: Object.keys(amenityDict) };
+    placesSection.innerHTML = '';
+    fetchPlaces(amenities);
   });
 });
-const statusApi = 'http://0.0.0.0:5001/api/v1/status/';
-fetch(statusApi).then((response) => {
-  if (response.ok) {
-    $('div#api_status').addClass('available');
-  }
-});
-const searchPlacesUrl = 'http://0.0.0.0:5001/api/v1/places_search/';
-fetch(searchPlacesUrl, {
-  method: 'POST',
-  headers: {
-    'Content-type': 'application/json'
-  },
-  body: JSON.stringify({})
-})
-  .then((response) => response.json())
-  .then((places) => {
-    const placesSection = document.querySelector('section.places');
-    for (const place of places) {
-      placesSection.appendChild(createPlaceArticle(place));
-    }
+
+function fetchPlaces (data) {
+  fetch(searchPlacesUrl, {
+    method: 'POST',
+    headers: {
+      'Content-type': 'application/json'
+    },
+    body: JSON.stringify(data)
   })
-  .catch((error) => console.error('Failed to fetch places:', error));
+    .then((response) => response.json())
+    .then((places) => {
+      const count = 0;
+      const placesSection = document.querySelector('section.places');
+      for (const place of places) {
+        const newPlace = createPlaceArticle(place);
+        placesSection.appendChild(newPlace);
+      }
+      console.log(count);
+    })
+    .catch((error) => console.error('Failed to fetch places:', error));
+}
 
 function createPlaceArticle (place) {
   const article = document.createElement('article');

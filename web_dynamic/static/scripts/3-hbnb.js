@@ -1,37 +1,46 @@
+const searchPlacesUrl = 'http://0.0.0.0:5001/api/v1/places_search/';
+const amenityDict = {};
 $(() => {
-  const amenityDict = {};
-  $("input[type='checkbox']").on('click', event => {
+  $("input[type='checkbox']").change(event => {
     const id = event.target.dataset.id;
     if (event.target.checked) {
       amenityDict[id] = event.target.dataset.name;
     } else {
       delete amenityDict[id];
     }
-    $('.amenities h4').text(Object.values(amenityDict));
+    $('.amenities h4').text(Object.values(amenityDict).join(', '));
   });
-});
-const statusApi = 'http://0.0.0.0:5001/api/v1/status/';
-fetch(statusApi).then((response) => {
-  if (response.ok) {
-    $('div#api_status').addClass('available');
-  }
-});
-const searchPlacesUrl = 'http://0.0.0.0:5001/api/v1/places_search/';
-fetch(searchPlacesUrl, {
-  method: 'POST',
-  headers: {
-    'Content-type': 'application/json'
-  },
-  body: JSON.stringify({})
-})
-  .then((response) => response.json())
-  .then((places) => {
-    const placesSection = document.querySelector('section.places');
-    for (const place of places) {
-      placesSection.appendChild(createPlaceArticle(place));
+
+  const statusApi = 'http://0.0.0.0:5001/api/v1/status/';
+  fetch(statusApi).then((response) => {
+    if (response.ok) {
+      $('div#api_status').addClass('available');
     }
+  });
+  fetchPlaces({});
+});
+
+function fetchPlaces (data) {
+  fetch(searchPlacesUrl, {
+    method: 'POST',
+    headers: {
+      'Content-type': 'application/json'
+    },
+    body: JSON.stringify(data)
   })
-  .catch((error) => console.error('Failed to fetch places:', error));
+    .then((response) => response.json())
+    .then((places) => {
+      let count = 0;
+      const placesSection = document.querySelector('section.places');
+      for (const place of places) {
+        const newPlace = createPlaceArticle(place);
+        placesSection.appendChild(newPlace);
+        count++;
+      }
+      console.log(count);
+    })
+    .catch((error) => console.error('Failed to fetch places:', error));
+}
 
 function createPlaceArticle (place) {
   const article = document.createElement('article');
