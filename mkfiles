@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+# This script
+new=$1
+
+if [ ! "$prev" ]; then
+        export prev=3
+fi
+
+cp web_dynamic/"$prev"-hbnb.py web_dynamic/"$new"-hbnb.py
+cp web_dynamic/templates/"$prev"-hbnb.html web_dynamic/templates/"$new"-hbnb.html
+cp web_dynamic/static/scripts/"$prev"-hbnb.js web_dynamic/static/scripts/"$new"-hbnb.js
+
+code web_dynamic/"$new"-hbnb.py
+code web_dynamic/templates/"$new"-hbnb.html
+code web_dynamic/static/scripts/"$new"-hbnb.js
+
+if [ "$new" ]; then
+        export prev=$new
+fi
