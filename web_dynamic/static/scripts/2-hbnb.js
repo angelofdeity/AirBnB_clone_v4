@@ -4,6 +4,3 @@ $.get(api, (data, textStatus) => {
     $('div#api_status').addClass('available');
   }
 });
-// fetch(api).then((response) => {
-//   console.log(response.statusText);
-// });

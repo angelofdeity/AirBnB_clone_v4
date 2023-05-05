@@ -1,6 +1,6 @@
 const statusApi = 'http://0.0.0.0:5001/api/v1/status/';
-$.get(statusApi, (data, textStatus) => {
-  if (textStatus) {
+fetch(statusApi).then((response) => {
+  if (response.ok) {
     $('div#api_status').addClass('available');
   }
 });
@@ -8,9 +8,9 @@ const searchPlacesUrl = 'http://0.0.0.0:5001/api/v1/places_search/';
 fetch(searchPlacesUrl, {
   method: 'POST',
   headers: {
-    'Content-type': 'application/json',
+    'Content-type': 'application/json'
   },
-  body: JSON.stringify({}),
+  body: JSON.stringify({})
 })
   .then((response) => response.json())
   .then((places) => {
@@ -21,7 +21,7 @@ fetch(searchPlacesUrl, {
   })
   .catch((error) => console.error('Failed to fetch places:', error));
 
-function createPlaceArticle(place) {
+function createPlaceArticle (place) {
   const article = document.createElement('article');
   const titleBox = document.createElement('div');
   titleBox.className = 'title_box';
