@@ -1,13 +1,12 @@
-$(function () {
-  const amens = {};
-  $('input[type=checkbox]').click(function () {
-    console.log($(this).is(':checked'));
-    console.log($(this).dataset);
-    if ($(this).is(':checked')) {
-      amens[$(this).attr('data-id')] = $(this).attr('data-name');
+$(() => {
+  const amenityDict = {};
+  $("input[type='checkbox']").on('click', event => {
+    const id = event.target.dataset.id;
+    if (event.target.checked) {
+      amenityDict[id] = event.target.dataset.name;
     } else {
-      delete amens[$(this).attr('data-id')];
+      delete amenityDict[id];
     }
-    $('.amenities h4').text(Object.values(amens).join(', '));
+    $('.amenities h4').text(Object.values(amenityDict));
   });
 });
