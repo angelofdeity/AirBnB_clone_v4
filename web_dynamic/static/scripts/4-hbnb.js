@@ -4,7 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   checkApiStatus();
   const checkboxes = document.querySelectorAll('input[type="checkbox"]');
   const amenities = document.querySelector('.amenities h4');
-  function handleCheckbox(checkbox) {
+  function handleCheckbox (checkbox) {
     const id = checkbox.dataset.id;
     if (checkbox.checked) {
       amenityDict[id] = checkbox.dataset.name;
@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
     handleCheckbox(checkbox);
     checkbox.addEventListener('click', () => handleCheckbox(checkbox));
   });
-  function updateAmenities() {
+  function updateAmenities () {
     amenities.textContent = Object.values(amenityDict).join(', ');
   }
   updateAmenities();
@@ -50,13 +50,12 @@ function fetchPlaces (data) {
   })
     .then((response) => response.json())
     .then((places) => {
-      const count = 0;
       const placesSection = document.querySelector('section.places');
+
       for (const place of places) {
         const newPlace = createPlaceArticle(place);
         placesSection.appendChild(newPlace);
       }
-      console.log(count);
     })
     .catch((error) => console.error('Failed to fetch places:', error));
 }
