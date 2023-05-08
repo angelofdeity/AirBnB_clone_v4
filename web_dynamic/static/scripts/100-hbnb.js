@@ -18,8 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
       return state;
     }
     function updateHeader (className) {
-      const obj = document.querySelector(`.${className} h4`);
-      obj.textContent = Object.values(state).join(', ');
+      const header = document.querySelector(`.${className} h4`);
+      header.textContent = Object.values(state).join(', ');
     }
     return { update, get };
   }

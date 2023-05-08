@@ -3,7 +3,7 @@
 new=$1
 
 if [ ! "$prev" ]; then
-        export prev=3
+        export prev=100
 fi
 
 cp web_dynamic/"$prev"-hbnb.py web_dynamic/"$new"-hbnb.py

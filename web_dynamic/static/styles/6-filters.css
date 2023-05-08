@@ -54,7 +54,7 @@ button:hover {
     border-right: 1px solid #DDDDDD;
 }
 
-.amenities-selected {
+.selected-filters {
     max-width: 150px;
     height: 15px;
     margin-top: 2px;
