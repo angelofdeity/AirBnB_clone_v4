@@ -2,95 +2,92 @@ const searchPlacesUrl = 'http://0.0.0.0:5001/api/v1/places_search/';
 
 document.addEventListener('DOMContentLoaded', () => {
   checkApiStatus();
-  // function checkboxStateManager (className) {
-  //   const state = {};
-  //   function update (id, name, checked) {
-  //     if (checked) {
-  //       state[id] = name;
-  //     } else {
-  //       delete state[id];
-  //     }
-  //     updateHeader(className);
-  //     // console.log('state:', Object.values(state));
-  //   }
-  //   function get () {
-  //     return state;
-  //   }
-  //   function updateHeader (className) {
-  //     const obj = document.querySelector(`.${className} h4`);
-  //     obj.textContent = Object.values(state).join(', ');
-  //   }
-  //   return { update, get };
-  // }
-  // function getInfo (checkbox) {
-  //   const id = checkbox.dataset.id;
-  //   const name = checkbox.dataset.name;
-  //   const checked = checkbox.checked;
-  //   return [id, name, checked];
-  // }
-  // function handleCheckboxEvent (className) {
-  //   const container = document.querySelector('.' + className);
-  //   const stateManager = checkboxStateManager(className);
-  //   const state = { ...stateManager.get() };
-  //   console.log(Object.values(state));
-  //   container.addEventListener('click', (event) => {
-  //     if (event.target.type === 'checkbox') {
-  //       const checkbox = event.target;
-  //       stateManager.update(...getInfo(checkbox));
-  //     }
-  //   });
-  //   return stateManager;
-  // }
-  // const amenities = handleCheckboxEvent('amenities');
-  // const locations = handleCheckboxEvent('locations');
-  // console.log(amenities.get());
-  // const stateValues = { ...amenities.get() };
-  // console.log(stateValues);
-
-  let stateObjects = {};
-  class CheckboxStateManager {
-    constructor (className) {
-      this.state = {};
-      this.container = document.querySelector(`.${className}`);
-      this.header = this.container.querySelector('h4');
-      this.container.addEventListener('click', this.update.bind(this));
+  let instances = {};
+  function checkboxStateManager (className) {
+    const state = {};
+    function update (key, name, checked) {
+      if (checked) {
+        state[key] = name;
+      } else {
+        delete state[key];
+      }
+      instances = { ...instances, ...state };
+      updateHeader(className);
     }
-
-    update (event) {
-      const checkbox = event.target;
-      if (checkbox.tagName === 'INPUT' && checkbox.type === 'checkbox') {
-        const id = checkbox.dataset.id;
+    function get () {
+      return state;
+    }
+    function updateHeader (className) {
+      const obj = document.querySelector(`.${className} h4`);
+      obj.textContent = Object.values(state).join(', ');
+    }
+    return { update, get };
+  }
+  function handleCheckboxEvent (className) {
+    const container = document.querySelector('.' + className);
+    const stateManager = checkboxStateManager(className);
+    container.addEventListener('click', (event) => {
+      if (event.target.type === 'checkbox') {
+        const checkbox = event.target;
         const name = checkbox.dataset.name;
         const checked = checkbox.checked;
-        const classN = checkbox.className;
-        const key = `${classN}.${id}`;
-        if (checked) {
-          this.state[key] = name;
-        } else {
-          delete this.state[key];
-        }
-        stateObjects = { ...stateObjects, ...this.state };
-        this.updateHeader();
+        const key = `${checkbox.className}.${checkbox.dataset.id}`;
+        stateManager.update(key, name, checked);
       }
-    }
-
-    updateHeader () {
-      this.header.textContent = Object.values(this.state).join(', ');
-    }
-
-    getState () {
-      return this.state;
-    }
+    });
+    return stateManager;
   }
+  handleCheckboxEvent('amenities');
+  handleCheckboxEvent('locations');
+
+  // let instances = {};
+  // class CheckboxStateManager {
+  //   constructor (className) {
+  //     this.state = {};
+  //     this.container = document.querySelector(`.${className}`);
+  //     this.header = this.container.querySelector('h4');
+  //     this.container.addEventListener('click', this.update.bind(this));
+  //   }
+
+  //   update (event) {
+  //     const checkbox = event.target;
+  //     if (checkbox.tagName === 'INPUT' && checkbox.type === 'checkbox') {
+  //       const id = checkbox.dataset.id;
+  //       const name = checkbox.dataset.name;
+  //       const checked = checkbox.checked;
+  //       // class names: [city, state, amenity]
+  //       const classN = checkbox.className;
+  //       const key = `${classN}.${id}`;
+  //       if (checked) {
+  //         this.state[key] = name;
+  //       } else {
+  //         delete this.state[key];
+  //       }
+  //       filters = { ...filters, ...this.state };
+  //       console.log(obj);
+  //       this.updateHeader();
+  //     }
+  //   }
+
+  //   updateHeader () {
+  //     this.header.textContent = Object.values(this.state).join(', ');
+  //   }
+
+  //   getState () {
+  //     return this.state;
+  //   }
+  // }
+
+  // // Usage example
+  // const amenities = new CheckboxStateManager('amenities');
+  // const locations = new CheckboxStateManager('locations');
+
+  // class names: [city, state, amenity]
   function getIdList (className) {
-    return Object.keys(stateObjects)
+    return Object.keys(instances)
       .filter(key => key.includes(className))
       .map(key => key.split('.')[1]);
   }
-
-  // Usage example
-  const amenities = new CheckboxStateManager('amenities');
-  const locations = new CheckboxStateManager('locations');
 
   // Filter place By Amenities
   const searchButton = document.querySelector('button');
@@ -99,9 +96,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const states = getIdList('state');
     const amenities = getIdList('amenity');
     const cities = getIdList('city');
-    const stateObjects = { cities, states, amenities };
+    const filters = { cities, states, amenities };
+    console.log(filters);
+    console.log(instances);
     placesSection.innerHTML = '';
-    fetchPlaces(stateObjects);
+    fetchPlaces(filters);
   });
 });
 function checkApiStatus () {
