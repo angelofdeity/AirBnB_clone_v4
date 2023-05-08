@@ -59,7 +59,7 @@ button:hover {
     height: 15px;
     margin-top: 2px;
     white-space: nowrap;
-    overflow: scroll;
+    overflow: hidden;
     text-overflow: ellipsis;
 }
 

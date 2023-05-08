@@ -14,13 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
     updateAmenities();
   }
   checkboxes.forEach(checkbox => {
-    handleCheckbox(checkbox);
     checkbox.addEventListener('click', () => handleCheckbox(checkbox));
   });
   function updateAmenities () {
     amenities.textContent = Object.values(amenityDict).join(', ');
   }
-  updateAmenities();
   // Filter place By Amenities
   const searchButton = document.querySelector('button');
   const placesSection = document.querySelector('section.places');
