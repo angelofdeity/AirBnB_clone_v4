@@ -92,12 +92,12 @@ function displayPlaces (places) {
 
   for (const place of places) {
     const reviewsUrl = `http://0.0.0.0:5001/api/v1/places/${place.id}/reviews`;
-    const newPlace = createPlaceArticle(place);
+    const [newPlace, btn] = createPlaceArticle(place);
     fetch(reviewsUrl)
       .then(response => response.json())
       .then(reviews => {
         const reviewsList = document.createElement('ul');
-        reviewsList.className = 'lists';
+        reviewsList.classList.add('lists', 'hidden');
         for (const review of reviews) {
           const userUrl = `http://0.0.0.0:5001/api/v1/users/${review.user_id}`;
           fetch(userUrl)
@@ -109,6 +109,7 @@ function displayPlaces (places) {
             })
             .catch((error) => console.error('Failed to fetch user:', error));
         }
+        displayReviews(btn, reviewsList);
       })
       .catch((error) => console.error('Failed to fetch reviews:', error));
 
@@ -159,12 +160,17 @@ function createPlaceArticle (place) {
   reviewsHeading.appendChild(reviewsShowSpan);
   reviewsContainer.appendChild(reviewsHeading);
   article.append(titleBox, info, description, reviewsContainer);
-  return article;
+  return [article, reviewsShowSpan];
 }
-function displayReviews (btn, review) {
+function displayReviews (btn, reviews) {
   btn.addEventListener('click', () => {
-    const newReview = createReview(review);
-    reviewsList.appendChild(newReview);
+    if (reviews.classList.contains('hidden')) {
+      reviews.classList.remove('hidden');
+      btn.textContent = ' hide';
+    } else {
+      reviews.classList.add('hidden');
+      btn.textContent = ' show';
+    }
   });
 }
 
@@ -200,15 +206,13 @@ function dateFormat (dateString) {
   const year = dateObj.getFullYear();
 
   // Format the date as "day <suffix> month year"
-  let suffix;
+  let suffix = 'th';
   if (day === 1 || day === 21 || day === 31) {
     suffix = 'st';
   } else if (day === 2 || day === 22) {
     suffix = 'nd';
   } else if (day === 3 || day === 23) {
     suffix = 'rd';
-  } else {
-    suffix = 'th';
   }
   const formattedDate = `${day}${suffix} ${monthNames[monthIndex]} ${year}`;
 
