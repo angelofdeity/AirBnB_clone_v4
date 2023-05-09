@@ -1,5 +1,4 @@
 const searchPlacesUrl = 'http://0.0.0.0:5001/api/v1/places_search/';
-
 document.addEventListener('DOMContentLoaded', () => {
   checkApiStatus();
   let instances = {};
@@ -55,10 +54,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const amenities = getIdList('amenity');
     const cities = getIdList('city');
     const filters = { cities, states, amenities };
-    console.log(filters);
-    console.log(instances);
     placesSection.innerHTML = '';
-    fetchPlaces(filters);
+    fetchData(filters, searchPlacesUrl)
+      .then(data => {
+        displayPlaces(data);
+      })
+      .catch((error) => console.error('Failed to fetch places:', error));
   });
 });
 function checkApiStatus () {
@@ -69,27 +70,51 @@ function checkApiStatus () {
       apiStatus.classList.add('available');
     }
   });
-  fetchPlaces({});
+  fetchData({}, searchPlacesUrl)
+    .then(data => {
+      displayPlaces(data);
+    })
+    .catch((error) => console.error('Failed to fetch places:', error));
 }
 
-function fetchPlaces (data) {
-  fetch(searchPlacesUrl, {
+function fetchData (data, url) {
+  return fetch(url, {
     method: 'POST',
     headers: {
       'Content-type': 'application/json'
     },
     body: JSON.stringify(data)
   })
-    .then((response) => response.json())
-    .then((places) => {
-      const placesSection = document.querySelector('section.places');
+    .then((response) => response.json());
+}
+function displayPlaces (places) {
+  const placesSection = document.querySelector('section.places');
 
-      for (const place of places) {
-        const newPlace = createPlaceArticle(place);
-        placesSection.appendChild(newPlace);
-      }
-    })
-    .catch((error) => console.error('Failed to fetch places:', error));
+  for (const place of places) {
+    const reviewsUrl = `http://0.0.0.0:5001/api/v1/places/${place.id}/reviews`;
+    const newPlace = createPlaceArticle(place);
+    fetch(reviewsUrl)
+      .then(response => response.json())
+      .then(reviews => {
+        const reviewsList = document.createElement('ul');
+        reviewsList.className = 'lists';
+        for (const review of reviews) {
+          const userUrl = `http://0.0.0.0:5001/api/v1/users/${review.user_id}`;
+          fetch(userUrl)
+            .then(response => response.json())
+            .then(user => {
+              const username = user.first_name + ' ' + user.last_name;
+              reviewsList.appendChild(createReview(review, username));
+              newPlace.appendChild(reviewsList);
+            })
+            .catch((error) => console.error('Failed to fetch user:', error));
+        }
+      })
+      .catch((error) => console.error('Failed to fetch reviews:', error));
+
+    placesSection.appendChild(newPlace);
+  }
+  return placesSection;
 }
 
 function createPlaceArticle (place) {
@@ -118,48 +143,74 @@ function createPlaceArticle (place) {
 
   const description = document.createElement('div');
   description.innerHTML = place.description;
-  article.append(titleBox, info, description);
-  return article;
-}
-
-function createReviews (review) {
   // Create the reviews container element
   const reviewsContainer = document.createElement('div');
   reviewsContainer.className = 'reviews';
 
   // Create the reviews heading element
   const reviewsHeading = document.createElement('h2');
+  reviewsHeading.id = 'reviewHeading';
   reviewsHeading.textContent = 'Reviews';
 
   // Create the reviews "show" span element
   const reviewsShowSpan = document.createElement('span');
-  reviewsShowSpan.textContent = 'show';
+  reviewsShowSpan.textContent = ' show';
+
   reviewsHeading.appendChild(reviewsShowSpan);
+  reviewsContainer.appendChild(reviewsHeading);
+  article.append(titleBox, info, description, reviewsContainer);
+  return article;
+}
+function displayReviews (btn, review) {
+  btn.addEventListener('click', () => {
+    const newReview = createReview(review);
+    reviewsList.appendChild(newReview);
+  });
+}
 
-  // Create the reviews list element
-  const reviewsList = document.createElement('ul');
-
+function createReview (review, username) {
   // Create a review item element
   const reviewItem = document.createElement('li');
 
   // Create the review heading element
   const reviewHeading = document.createElement('h3');
-  reviewHeading.textContent = 'From Bob Dylan the 27th January 2017';
+  reviewHeading.textContent = `From ${username} the ` + dateFormat(review.updated_at);
 
   // Create the review content element
   const reviewContent = document.createElement('p');
-  reviewContent.textContent = 'I had the best sex ever here😉';
+  reviewContent.innerHTML = review.text;
 
   // Add the review heading and content to the review item element
   reviewItem.appendChild(reviewHeading);
   reviewItem.appendChild(reviewContent);
 
-  // Add the review item to the reviews list
-  reviewsList.appendChild(reviewItem);
+  return reviewItem;
+}
 
-  // Add the reviews heading and list to the reviews container
-  reviewsContainer.appendChild(reviewsHeading);
-  reviewsContainer.appendChild(reviewsList);
+function dateFormat (dateString) {
+  // Create a new date object from the input string
+  const dateObj = new Date(dateString);
 
-  return reviewsContainer;
+  // Array of month names
+  const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+  // Get the day, month, and year from the date object
+  const day = dateObj.getDate();
+  const monthIndex = dateObj.getMonth();
+  const year = dateObj.getFullYear();
+
+  // Format the date as "day <suffix> month year"
+  let suffix;
+  if (day === 1 || day === 21 || day === 31) {
+    suffix = 'st';
+  } else if (day === 2 || day === 22) {
+    suffix = 'nd';
+  } else if (day === 3 || day === 23) {
+    suffix = 'rd';
+  } else {
+    suffix = 'th';
+  }
+  const formattedDate = `${day}${suffix} ${monthNames[monthIndex]} ${year}`;
+
+  return formattedDate;
 }
